@@ -1,73 +1,77 @@
 const url = "./static/data/samples.json";
-
-// Fetch the JSON data and console log it
-// d3.json(url).then(function (data) {
-//   console.log(data);
-// });
-
-// // Promise Pending
-// const dataPromise = d3.json(url);
-// console.log("Data Promise: ", dataPromise);
-
-// Function to select test subject ID
-function init() {  // Initialises the application, does all setup for application to be rendered
-  // loads data and calls other functions with required arguments
-  // read in data
-  d3.json(url).then(function (data) {
-    // Check the data on the console
-    console.log(data);
-    var defaultID = 0//"940"
-    // grab the subject id #s from data json
-    var idNumber = data.names;
-    var selectID = d3.select("#selDataset")
-    idNumber.forEach(function (subjectID) {
-      selectID.append("option").text(subjectID)
-    })
-    demoData(data.metadata[defaultID])
-  });
+// Function to initialize the application, does all setup for application to be rendered
+// loads data and calls other functions with required arguments
+function init() {
+    d3.json(url).then(function (data) {
+        // Check the data on the console
+        console.log(data);
+        var defaultID = 0//"940"
+        // grab the subject id #s from data json
+        var idNumber = data.names;
+        var selectID = d3.select("#selDataset")
+        idNumber.forEach(function (subjectID) {
+            selectID.append("option").text(subjectID)
+        })
+        demoData(data.metadata[defaultID])
+        buildCharts(data.samples[defaultID])
+    });
 };
 
-function optionChanged(id) { //recalls function with updated arguments
-  d3.json(url).then(function (data) {
-    console.log(`${id} selected`)
-    var result = data.metadata.filter(meta => meta.id == id)[0]
-    console.log(result)
-    demoData(result)
-  })
+//recalls function with updated arguments
+function optionChanged(id) {
+    d3.json("./static/data/samples.json").then(function (data) {
+        console.log(`${id} selected`)
+        var result = data.metadata.filter(meta => meta.id == id)[0]
+        var sample = data.samples.filter(sample => sample.id == id)[0]
+        console.log(`result: ${result}`)
+        demoData(result);
+        buildCharts(sample);
+    })
 }
 
 // To do: 
 function demoData(id) { //renders the demographic information supplied by optionChange
-  var selectInfo = d3.select("#sample-metadata")
-  selectInfo.html("")
-  console.log(id)
-  selectInfo.append("p").text(`metadata for ${Object.entries(id)}`)
-
-  // Object.entries(filterresult).forEach(([key, value]) => {
-  //   display.append("h6").text(`${key} ${value}`);
-  // To do: Replace debug test with actual metadata
-}
+    var selectInfo = d3.select("#sample-metadata");
+    selectInfo.html("");
+    console.log(id);
+    // selectInfo.append("p").text(`metadata for ${Object.entries(id)}`)
+    Object.entries(id).forEach(([key, value]) => {
+        selectInfo.append("p").text(`${key}: ${value}`);
+        //To do: Replace debug test with actual metadata
+    });
+};
 
 function buildCharts(sample) { // renders the charts
-  var sample = data.samples.filter(sample => sample.id == id)[0]
-  console.log(sample)
-  buildCharts(sample)
+    // var sample = data.samples.filter(sample => sample.id == id)[0]
+    console.log(sample)
+    //--------------------------------------//
+    var otu_ids = sample.otu_ids;
+    var otu_labels = sample.otu_labels;
+    var sample_values = sample.sample_values;
+    var bubbledata = [{
+        x: otu_ids,
+        y: sample_values,
+        text: otu_labels,
+        mode: "markers",
+        marker: {
+            size: sample_values,
+            color: otu_ids,
+            colorscale: "YlGnBu"
+        }
+    }];
+    var bardata = [{
+        y: otu_ids.slice(0, 10).map(val => `OTU ${val}`).reverse(),
+        x: sample_values.slice(0, 10).reverse(),
+        text: otu_labels.slice(0, 10).reverse(),
+        type: "bar",
+        orientation: "h",
+    }]
 
+    Plotly.newPlot("bar", bardata);
+    Plotly.newPlot("bubble", bubbledata);
+    //---------------------------------------------//
 }
 
 init();
 
-
-// var data = [{
-//   y:['Marc', 'Henrietta', 'Jean', 'Claude', 'Jeffrey', 'Jonathan', 'Jennifer', 'Zacharias'], 
-//     x: [90, 40, 60, 80, 75, 92, 87, 73],
-//     type: 'bar',
-//     orientation: 'h'}]
-
-// var layout = {
-//   title: 'Always Display the Modebar',
-//   showlegend: false}
-
-
-// ***********************************************************************************************************************
-// 
+// *************************************

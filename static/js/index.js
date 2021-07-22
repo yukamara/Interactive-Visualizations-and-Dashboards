@@ -23,7 +23,7 @@ function metadata(id) {
         var display = d3.select("#sample-metadata");
         display.html("");
         Object.entries(filterresult).forEach(([key, value]) => {
-            display.append("h6").text(`${key} ${value}`);
+            display.append("h6").text(`${key}: ${value}`);
         });
 
     });
